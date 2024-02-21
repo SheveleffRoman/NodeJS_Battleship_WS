@@ -1,14 +1,15 @@
 import { httpServer } from "./src/http_server/index.js";
 import { wsServer } from "./src/ws/ws-server.js";
+import dotenv from "dotenv";
 
-const HTTP_PORT = 8181;
-const HOST = "localhost"
+dotenv.config();
 
-console.log(`Start static http server on the ${HTTP_PORT} port!`);
-httpServer.listen(HTTP_PORT);
+const HOST = "localhost";
+const http_port = process.env.HTTP_PORT || 8181;
+
+console.log(`Start static http server on the ${http_port} port!`);
+httpServer.listen(http_port);
 
 wsServer.on("listening", () => {
-  console.log(
-    `WS server started on ws://${HOST}:${wsServer.options.port}`
-  );
+  console.log(`WS server started on ws://${HOST}:${wsServer.options.port}`);
 });
