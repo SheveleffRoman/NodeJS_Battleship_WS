@@ -39,3 +39,13 @@ export interface User {
 export interface Player extends User {
   index: number;
 }
+
+export interface Room {
+  roomId: number;
+  roomUsers: Partial<Player>[];
+}
+
+export interface Winner {
+  name: string;
+  wins: number;
+}
