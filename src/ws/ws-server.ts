@@ -1,6 +1,8 @@
 import WebSocket, { WebSocketServer } from "ws";
 import dotenv from "dotenv";
 import { handleClientRequest } from "../handlers/clientRequestHandler.js";
+import { ExtendedWebSocket } from "../interfaces.js";
+import { generateRandomId } from "../utils/randomID.js";
 
 dotenv.config();
 
@@ -10,8 +12,11 @@ export const wsServer = new WebSocketServer({
   port: ws_port,
 });
 
-wsServer.on("connection", (ws: WebSocket) => {
-  console.log("Connected with WebSocket");
+wsServer.on("connection", (ws: ExtendedWebSocket) => {
+  const clientId = generateRandomId();
+  console.log(`WebSocket connected with ID: ${clientId}`);
+  ws.clientId = clientId;
+
   ws.on("message", (message: WebSocket.RawData) => {
     handleClientRequest(message, ws);
   });
