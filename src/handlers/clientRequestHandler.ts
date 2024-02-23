@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 import { isValidRequestObject } from "../utils/objectValidation.js";
-import { ClientRequest } from "../interfaces.js";
+import { ClientRequest, ExtendedWebSocket } from "../interfaces.js";
 import {
   addUserToRoom,
   serverCreateNewRoomResponse,
@@ -12,10 +12,14 @@ import { DB } from "../database/db.js";
 
 export const handleClientRequest = (
   message: WebSocket.RawData,
-  ws: WebSocket
+  ws: ExtendedWebSocket
 ): void => {
   let clientMessageObj: unknown;
   const messageStr = message.toString();
+
+  console.log(
+    `Received message from client with ID ${ws.clientId}: ${message}`
+  );
 
   try {
     clientMessageObj = JSON.parse(messageStr);
@@ -40,10 +44,12 @@ const handleRequest = (message: ClientRequest, ws: WebSocket): void => {
     case "create_room":
       serverCreateNewRoomResponse(message, ws);
       updateRoom(ws);
+      break;
 
     case "add_user_to_room":
-      addUserToRoom(ws);
+      addUserToRoom(message, ws);
       updateRoom(ws);
+      break;
 
     default:
       break;
