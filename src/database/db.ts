@@ -1,11 +1,12 @@
 import WebSocket from "ws";
-import { Player, Room, User, Winner } from "../interfaces.js";
+import { GameRoom, Player, Room, User, Winner } from "../interfaces.js";
 
 class DataBase {
   private playersList: Player[] = [];
   private rooms: Room[] = [];
   private winnersList: Winner[] = [];
   private playerSockets: Map<number, WebSocket> = new Map();
+  private gameRoom: GameRoom[] = [];
 
   // Добавление сокета к игроку
   addSocketToPlayer(index: number, socket: WebSocket): void {
@@ -72,6 +73,14 @@ class DataBase {
 
   getWinnersList(): Winner[] {
     return this.winnersList;
+  }
+
+  addShipsToRoom(ships: GameRoom) {
+    return this.gameRoom.push(ships);
+  }
+
+  getGameRoom(): GameRoom[] {
+    return this.gameRoom;
   }
 }
 

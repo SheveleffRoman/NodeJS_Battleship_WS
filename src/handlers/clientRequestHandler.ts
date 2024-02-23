@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import { isValidRequestObject } from "../utils/objectValidation.js";
 import { ClientRequest, ExtendedWebSocket } from "../interfaces.js";
 import {
+  addShips,
   addUserToRoom,
   serverCreateNewRoomResponse,
   serverRegUserResponse,
@@ -49,6 +50,14 @@ const handleRequest = (message: ClientRequest, ws: WebSocket): void => {
     case "add_user_to_room":
       addUserToRoom(message, ws);
       updateRoom(ws);
+      break;
+
+    case "add_ships":
+      addShips(message, ws);
+      break;
+
+    case "attack":
+      
       break;
 
     default:

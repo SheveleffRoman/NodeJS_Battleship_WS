@@ -7,6 +7,7 @@ export type ClientObjTypes =
   | "add_user_to_room"
   | "create_game"
   | "update_room"
+  | "start_game"
   | "add_ships"
   | "attack"
   | "randomAttack"
@@ -58,4 +59,22 @@ export interface Winner {
 
 export interface ExtendedWebSocket extends WebSocket {
   clientId?: number;
+}
+
+interface ShipPosition {
+  x: number;
+  y: number;
+}
+
+interface Ship {
+  position: ShipPosition;
+  direction: boolean;
+  length: number;
+  type: "small" | "medium" | "large" | "huge";
+}
+
+export interface GameRoom {
+  gameId: number;
+  ships: Ship[];
+  indexPlayer: number;
 }

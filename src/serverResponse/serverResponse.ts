@@ -3,6 +3,7 @@ import {
   AddRoomResponse,
   ClientRequest,
   ExtendedWebSocket,
+  GameRoom,
   Player,
   RegResponseData,
   Room,
@@ -151,6 +152,46 @@ export const addUserToRoom = (
         };
 
         socket?.send(JSON.stringify(response));
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const addShips = (message: ClientRequest, _ws: ExtendedWebSocket) => {
+  try {
+    const data = message.data.toString();
+    const parsedData = JSON.parse(data);
+    console.log(parsedData);
+    DB.addShipsToRoom(parsedData);
+    const gameRoom = DB.getGameRoom();
+    if (gameRoom.length > 1) {
+      gameRoom.forEach((game: GameRoom) => {
+        const playerIndex = game.indexPlayer;
+        const socket = DB.getPlayerSocket(playerIndex);
+
+        const response: ServerResponse = {
+          type: "start_game",
+          data: JSON.stringify({
+            ships: game.ships,
+            currentPlayerIndex: game.indexPlayer,
+          }),
+          id: 0,
+        };
+
+        socket?.send(JSON.stringify(response));
+
+        const randomPlayerIndex = Math.floor(Math.random() * 2);
+        const turnResponse: ServerResponse = {
+          type: "turn",
+          data: JSON.stringify({
+            currentPlayer: gameRoom[randomPlayerIndex].indexPlayer,
+          }),
+          id: 0,
+        };
+
+        socket?.send(JSON.stringify(turnResponse));
       });
     }
   } catch (error) {
