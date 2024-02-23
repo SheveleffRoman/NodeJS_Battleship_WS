@@ -1,6 +1,8 @@
 import WebSocket from "ws";
 import {
+  AddRoomResponse,
   ClientRequest,
+  ExtendedWebSocket,
   Player,
   RegResponseData,
   Room,
@@ -11,7 +13,7 @@ import { DB } from "../database/db.js";
 
 export const serverRegUserResponse = (
   message: ClientRequest,
-  ws: WebSocket
+  ws: ExtendedWebSocket
 ) => {
   try {
     const data = message.data;
@@ -28,7 +30,7 @@ export const serverRegUserResponse = (
         password: parsedData.password,
       };
 
-      const user = DB.registerUser(newUser); // push to db
+      const user = DB.registerUser(newUser, ws.clientId!); // push to db
       DB.addSocketToPlayer(user.index, ws); // push to socket
 
       const responseData: RegResponseData = {
@@ -71,16 +73,16 @@ export const serverRegUserResponse = (
 
 export const serverCreateNewRoomResponse = (
   _message: ClientRequest,
-  ws: WebSocket
+  ws: ExtendedWebSocket
 ) => {
   try {
     const rooms = DB.getRooms();
     const roomId = rooms.length == 0 ? 1 : rooms.length + 1;
-    const player = DB.getPlayersList();
-    const playerIndex = player[0].index;
-    DB.createRoom();
+    const player = DB.getUserById(ws.clientId!);
+    const playerIndex = player?.index;
 
-    DB.addUserToRoom(playerIndex, roomId);
+    DB.createRoom();
+    DB.addUserToRoom(playerIndex!, roomId);
   } catch (error) {
     console.log(error);
   }
@@ -114,18 +116,37 @@ export const updateRoom = (ws: WebSocket) => {
   }
 };
 
-export const addUserToRoom = (_ws: WebSocket) => {
+export const addUserToRoom = (
+  message: ClientRequest,
+  ws: ExtendedWebSocket
+) => {
   try {
-    DB.addUserToRoom(2, 1);
-    const rooms = DB.getRooms();
-    const roomsL = rooms[0].roomUsers.length;
-    if (roomsL > 1) {
-      rooms[0].roomUsers.forEach((user) => {
-        const index = user.index;
-        const socket = DB.getPlayerSocket(index!);
+    const data = message.data.toString();
+    const parsedData = JSON.parse(data) as AddRoomResponse;
+    const index = parsedData.indexRoom;
+
+    const clientId = ws.clientId!;
+
+    const room = DB.getRoomById(index) as Room;
+
+    // Check if the user is already in the room
+    if (room.roomUsers.some((user) => user.index === clientId)) {
+      console.log("User is already in the room");
+      return;
+    }
+
+    if (room.roomUsers.length < 2) {
+      DB.addUserToRoom(clientId, index);
+    }
+
+    if (room.roomUsers.length > 1) {
+      room.roomUsers.forEach((user) => {
+        const userIndex = user.index;
+        const socket = DB.getPlayerSocket(userIndex!);
+
         const response: ServerResponse = {
           type: "create_game",
-          data: JSON.stringify({ idGame: 1, idPlayer: index }),
+          data: JSON.stringify({ idGame: 1, idPlayer: userIndex }),
           id: 0,
         };
 
