@@ -1,3 +1,5 @@
+import WebSocket from "ws";
+
 export type ClientObjTypes =
   | "reg"
   | "update_winners"
@@ -45,7 +47,15 @@ export interface Room {
   roomUsers: Partial<Player>[];
 }
 
+export interface AddRoomResponse {
+  indexRoom: number;
+}
+
 export interface Winner {
   name: string;
   wins: number;
+}
+
+export interface ExtendedWebSocket extends WebSocket {
+  clientId?: number;
 }

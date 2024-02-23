@@ -22,8 +22,7 @@ class DataBase {
   }
 
   // Регистрация нового пользователя
-  registerUser(user: User): Player {
-    const index = this.playersList.length + 1;
+  registerUser(user: User, index: number): Player {
     const newUser = { name: user.name, password: user.password, index };
     this.playersList.push(newUser);
     return newUser;
@@ -53,7 +52,7 @@ class DataBase {
   }
 
   clearRooms(): Room[] {
-    return this.rooms = [];
+    return (this.rooms = []);
   }
 
   addUserToRoom(index: number, roomId: number): void {
@@ -65,6 +64,10 @@ class DataBase {
       const roomPlayer: Partial<Player> = { name, index };
       room.roomUsers.push(roomPlayer);
     }
+  }
+
+  getRoomById(index: number): Room | undefined {
+    return this.rooms.find((r) => r.roomId === index);
   }
 
   getWinnersList(): Winner[] {
