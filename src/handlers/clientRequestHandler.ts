@@ -4,6 +4,7 @@ import { ClientRequest, ExtendedWebSocket } from "../interfaces.js";
 import {
   addShips,
   addUserToRoom,
+  handleAttackRequest,
   serverCreateNewRoomResponse,
   serverRegUserResponse,
   updateRoom,
@@ -57,7 +58,7 @@ const handleRequest = (message: ClientRequest, ws: WebSocket): void => {
       break;
 
     case "attack":
-      
+      handleAttackRequest(message, ws)
       break;
 
     default:

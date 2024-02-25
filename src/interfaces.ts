@@ -61,12 +61,12 @@ export interface ExtendedWebSocket extends WebSocket {
   clientId?: number;
 }
 
-interface ShipPosition {
+export interface ShipPosition {
   x: number;
   y: number;
 }
 
-interface Ship {
+export interface Ship {
   position: ShipPosition;
   direction: boolean;
   length: number;
@@ -77,4 +77,16 @@ export interface GameRoom {
   gameId: number;
   ships: Ship[];
   indexPlayer: number;
+}
+
+export interface Attack {
+  x: number;
+  y: number;
+  gameId: number;
+  indexPlayer: number;
+}
+
+export interface ShipPositions {
+  indexPlayer: number;
+  shipsCoordinates: ShipPosition[];
 }
