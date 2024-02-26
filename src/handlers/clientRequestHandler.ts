@@ -36,7 +36,7 @@ export const handleClientRequest = (
   }
 };
 
-const handleRequest = (message: ClientRequest, ws: WebSocket): void => {
+const handleRequest = (message: ClientRequest, ws: ExtendedWebSocket): void => {
   switch (message.type) {
     case "reg":
       serverRegUserResponse(message, ws);
@@ -58,7 +58,7 @@ const handleRequest = (message: ClientRequest, ws: WebSocket): void => {
       break;
 
     case "attack":
-      handleAttackRequest(message, ws)
+      handleAttackRequest(message, ws);
       break;
 
     default:

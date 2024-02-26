@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import {
+  Attack,
   GameRoom,
   Player,
   Room,
@@ -83,6 +84,11 @@ class DataBase {
     return this.winnersList;
   }
 
+  addWinnersToList(winner: Winner): Winner[] {
+    this.winnersList.push(winner);
+    return this.winnersList;
+  }
+
   addShipsToRoom(ships: GameRoom) {
     return this.gameRoom.push(ships);
   }
@@ -97,6 +103,28 @@ class DataBase {
 
   getShipsPosistions(): ShipPositions[] {
     return this.shipPositions;
+  }
+
+  removeCoordinateFromArray(attack: Partial<Attack>) {
+    const enemyPositionsIndex = this.shipPositions.findIndex(
+      (ships) => ships.indexPlayer !== attack.indexPlayer
+    );
+
+    if (enemyPositionsIndex !== -1) {
+      const enemyPositions = this.shipPositions[enemyPositionsIndex];
+
+      const updatedCoordinates = enemyPositions.shipsCoordinates.filter(
+        (coord) => coord.x !== attack.x || coord.y !== attack.y
+      );
+
+      // Обновляем shipPositions соперника
+      this.shipPositions[enemyPositionsIndex].shipsCoordinates =
+        updatedCoordinates;
+
+      console.log("Updated enemy positions:", this.shipPositions);
+    } else {
+      console.error("Enemy positions not found.");
+    }
   }
 }
 

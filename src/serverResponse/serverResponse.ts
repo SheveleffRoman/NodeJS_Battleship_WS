@@ -5,12 +5,11 @@ import {
   ClientRequest,
   ExtendedWebSocket,
   GameRoom,
-  Player,
   RegResponseData,
   Room,
   ServerResponse,
   Ship,
-  ShipPosition,
+  ShipCoordinate,
   ShipPositions,
   User,
 } from "../interfaces.js";
@@ -93,9 +92,23 @@ export const serverCreateNewRoomResponse = (
   }
 };
 
-export const updateWinners = (ws: WebSocket) => {
+export const updateWinners = (
+  ws: ExtendedWebSocket,
+  winner?: Partial<Attack>
+) => {
   try {
-    const winnersList = DB.getWinnersList();
+    let winnersList = DB.getWinnersList();
+    if (winner) {
+      const player = DB.getUserById(ws.clientId!);
+      const playerIndex = winnersList.findIndex(
+        (item) => item.name === player!.name
+      );
+      if (playerIndex !== -1) {
+        winnersList[playerIndex].wins += 1;
+      } else {
+        winnersList = DB.addWinnersToList({ name: player!.name, wins: 1 });
+      }
+    }
     const response: ServerResponse = {
       type: "update_winners",
       data: JSON.stringify(winnersList),
@@ -115,6 +128,7 @@ export const updateRoom = (ws: WebSocket) => {
       data: JSON.stringify(roomsList),
       id: 0,
     };
+    roomsList;
     ws.send(JSON.stringify(response));
   } catch (error) {
     console.log(error);
@@ -184,7 +198,7 @@ export const addShips = (message: ClientRequest, _ws: ExtendedWebSocket) => {
         };
 
         const allShipCoordinates = game.ships.reduce(
-          (acc: ShipPosition[], ship: Ship) => {
+          (acc: ShipCoordinate[], ship: Ship) => {
             const shipCoordinates = getShipCoordinates(ship);
             return acc.concat(shipCoordinates);
           },
@@ -236,50 +250,7 @@ export function handleAttackRequest(
   if (enemyPositions) {
     const attackStatus = attack(attackData, enemyPositions);
   }
-
-  // console.log(game?.ships);
-
-  // if (game) {
-  // Проверить, было ли попадание
-  // console.log(game)
-  // const hitShip = game.ships.find(
-  //   (ship) =>
-  //     ship.position.x === attackData.x && ship.position.y === attackData.y
-  // );
-
-  // const shipPositions = game.ships;
-  // console.log(shipPositions);
-
-  // Получение всех координат кораблей
-  // const allShipCoordinates = shipPositions.reduce((acc, ship) => {
-  //   const shipCoordinates = getShipCoordinates(ship);
-  //   return acc.concat(shipCoordinates);
-  // }, []);
-
-  // console.log(allShipCoordinates);
-
-  // console.log(hitShip);
-
-  // Отправить ответ клиенту
-  // const response = {
-  //   type: "attack",
-  //   data: JSON.stringify({
-  //     gameId: attackData.gameId,
-  //     position: { x: attackData.x, y: attackData.y },
-  //     currentPlayer: attackData.indexPlayer,
-  //     status: hitShip != undefined ? "shot" : "miss", // Указать результат атаки
-  //   }),
-  //   id: 0,
-  // };
-
-  // gameRoom.forEach((game: GameRoom) => {
-  //   const playerIndex = game.indexPlayer;
-  //   const socket = DB.getPlayerSocket(playerIndex);
-
-  //   socket?.send(JSON.stringify(response));
-  // });
 }
-// }
 
 function getShipCoordinates(ship: Ship) {
   const coordinates = [];
@@ -297,15 +268,7 @@ function getShipCoordinates(ship: Ship) {
   return coordinates;
 }
 
-// Функция для удаления координаты из массива
-function removeCoordinateFromArray(
-  array: ShipPosition[],
-  coordinate: Partial<Attack>
-) {
-  return array.filter(
-    (coord) => coord.x !== coordinate.x || coord.y !== coordinate.y
-  );
-}
+let currentPlayerIndex = 0;
 
 // Функция для атаки по координатам
 function attack(attack: Partial<Attack>, positions: ShipPositions) {
@@ -314,21 +277,42 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
     (coord) => coord.x === attack.x && coord.y === attack.y
   );
 
-  console.log(hitCoordinate);
-
-  // if (hitCoordinate) {
-  //   console.log("Попадание!");
-
   const gameRoom = DB.getGameRoom();
+
+  if (attack.indexPlayer != gameRoom[currentPlayerIndex].indexPlayer) {
+    console.log("Not your turn");
+    return;
+  }
+
+  // console.log(hitCoordinate);
+
+  if (hitCoordinate) {
+    DB.removeCoordinateFromArray(attack);
+    // console.log(DB.getShipsPosistions())
+  } else {
+    switchTurn();
+  }
+
+  if (positions.shipsCoordinates.length == 0) {
+    console.log("GAME OVER");
+    gameRoom.forEach((game: GameRoom) => {
+      const playerIndex = game.indexPlayer; // порядковый номер в группе
+      const socket = DB.getPlayerSocket(playerIndex);
+      const finishResponse = {
+        type: "finish",
+        data: JSON.stringify({
+          winPlayer: attack.indexPlayer,
+        }),
+        id: 0,
+      };
+      socket?.send(JSON.stringify(finishResponse));
+
+      updateWinners(socket!, attack);
+    });
+  }
+
   gameRoom.forEach((game: GameRoom) => {
     const playerIndex = game.indexPlayer; // порядковый номер в группе
-    // let currentPlayerIndex = gameRoom[0].indexPlayer;
-    // let nextPlayerIndex = gameRoom[1].indexPlayer;
-    // function switchTurn() {
-    //   const temp = currentPlayerIndex;
-    //   currentPlayerIndex = nextPlayerIndex;
-    //   nextPlayerIndex = temp;
-    // }
     if (hitCoordinate) {
       const response = {
         type: "attack",
@@ -345,7 +329,7 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
       const turnResponse: ServerResponse = {
         type: "turn",
         data: JSON.stringify({
-          currentPlayer: gameRoom[0].indexPlayer,
+          currentPlayer: gameRoom[currentPlayerIndex].indexPlayer,
         }),
         id: 0,
       };
@@ -367,7 +351,7 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
       const turnResponse: ServerResponse = {
         type: "turn",
         data: JSON.stringify({
-          currentPlayer: gameRoom[1].indexPlayer,
+          currentPlayer: gameRoom[currentPlayerIndex].indexPlayer,
         }),
         id: 0,
       };
@@ -376,9 +360,7 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
     }
   });
 
-  // removeCoordinateFromArray(positions, coordinates);
-  // } else {
-  //   console.log("Мимо!");
-  // }
+  function switchTurn() {
+    currentPlayerIndex = 1 - currentPlayerIndex; // Переключение между 0 и 1
+  }
 }
-
