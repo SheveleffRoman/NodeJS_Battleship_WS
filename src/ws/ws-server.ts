@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { handleClientRequest } from "../handlers/clientRequestHandler.js";
 import { ExtendedWebSocket } from "../interfaces.js";
 import { generateRandomId } from "../utils/randomID.js";
+import { DB } from "../database/db.js";
 
 dotenv.config();
 
@@ -19,5 +20,11 @@ wsServer.on("connection", (ws: ExtendedWebSocket) => {
 
   ws.on("message", (message: WebSocket.RawData) => {
     handleClientRequest(message, ws);
+  });
+
+  ws.on("close", () => {
+    const clientId = ws.clientId;
+    DB.removeSocketById(clientId!);
+    console.log(`WebSocket disconnected: ${clientId}`);
   });
 });

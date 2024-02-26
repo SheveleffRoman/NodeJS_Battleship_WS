@@ -27,6 +27,10 @@ class DataBase {
     return this.playerSockets.get(index);
   }
 
+  removeSocketById(index: number) {
+    return this.playerSockets.delete(index);
+  }
+
   getAllSockets() {
     return this.playerSockets;
   }
@@ -66,7 +70,7 @@ class DataBase {
   }
 
   removeRoomById(id: number): void {
-    const indexToRemove = this.rooms.findIndex(room => room.roomId === id);
+    const indexToRemove = this.rooms.findIndex((room) => room.roomId === id);
 
     if (indexToRemove !== -1) {
       this.rooms.splice(indexToRemove, 1);
