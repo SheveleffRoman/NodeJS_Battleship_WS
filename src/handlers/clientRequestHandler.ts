@@ -10,7 +10,6 @@ import {
   updateRoom,
   updateWinners,
 } from "../serverResponse/serverResponse.js";
-import { DB } from "../database/db.js";
 
 export const handleClientRequest = (
   message: WebSocket.RawData,
@@ -60,6 +59,9 @@ const handleRequest = (message: ClientRequest, ws: ExtendedWebSocket): void => {
     case "attack":
       handleAttackRequest(message, ws);
       break;
+
+    case "randomAttack":
+      handleAttackRequest(message, ws);
 
     default:
       break;

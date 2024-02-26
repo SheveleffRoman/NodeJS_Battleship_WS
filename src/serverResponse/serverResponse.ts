@@ -23,19 +23,16 @@ export const serverRegUserResponse = (
     const data = message.data;
     const parsedData = JSON.parse(data) as User;
 
-    // Проверка уникальности имени игрока
-
     const playerExists = DB.findUserByName(parsedData.name);
 
     if (!playerExists) {
-      // Добавление нового игрока в базу данных
       const newUser: User = {
         name: parsedData.name,
         password: parsedData.password,
       };
 
-      const user = DB.registerUser(newUser, ws.clientId!); // push to db
-      DB.addSocketToPlayer(user.index, ws); // push to socket
+      const user = DB.registerUser(newUser, ws.clientId!);
+      DB.addSocketToPlayer(user.index, ws);
 
       const responseData: RegResponseData = {
         name: user.name,
@@ -158,7 +155,7 @@ export const addUserToRoom = (
     }
 
     if (room.roomUsers.length > 1) {
-      DB.removeRoomById(index)
+      DB.removeRoomById(index);
       room.roomUsers.forEach((user) => {
         const userIndex = user.index;
         const socket = DB.getPlayerSocket(userIndex!);
@@ -231,11 +228,29 @@ export const addShips = (message: ClientRequest, _ws: ExtendedWebSocket) => {
 // Оработка запроса атаки
 export function handleAttackRequest(
   message: ClientRequest,
-  ws: ExtendedWebSocket
+  _ws: ExtendedWebSocket
 ) {
+  let attackData: Attack;
+  let usedCoordinates: { [key: string]: boolean } = {};
   const data = message.data.toString();
-  const attackData = JSON.parse(data) as Attack;
-  console.log(attackData);
+
+  const checkRandomAttack = message.type.toString();
+  if (checkRandomAttack === "randomAttack") {
+    attackData = JSON.parse(data) as Attack;
+    do {
+      attackData.x = Math.floor(Math.random() * 10);
+      attackData.y = Math.floor(Math.random() * 10);
+      var key = `${attackData.x},${attackData.y}`;
+    } while (usedCoordinates[key]);
+
+    usedCoordinates[key] = true;
+
+  } else {
+    attackData = JSON.parse(data) as Attack;
+  }
+
+  // const attackData = JSON.parse(data) as Attack;
+  // console.log(attackData);
 
   // // Найти корабли соперника по indexPlayer
 
@@ -272,7 +287,6 @@ let currentPlayerIndex = 0;
 
 // Функция для атаки по координатам
 function attack(attack: Partial<Attack>, positions: ShipPositions) {
-  console.log(positions.shipsCoordinates);
   const hitCoordinate = positions.shipsCoordinates.find(
     (coord) => coord.x === attack.x && coord.y === attack.y
   );
@@ -294,7 +308,6 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
   }
 
   if (positions.shipsCoordinates.length == 0) {
-    console.log("GAME OVER");
     gameRoom.forEach((game: GameRoom) => {
       const playerIndex = game.indexPlayer; // порядковый номер в группе
       const socket = DB.getPlayerSocket(playerIndex);
