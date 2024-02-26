@@ -61,8 +61,19 @@ class DataBase {
     return this.rooms;
   }
 
-  clearRooms(): Room[] {
+  clearRooms(id: number): Room[] {
     return (this.rooms = []);
+  }
+
+  removeRoomById(id: number): void {
+    const indexToRemove = this.rooms.findIndex(room => room.roomId === id);
+
+    if (indexToRemove !== -1) {
+      this.rooms.splice(indexToRemove, 1);
+      console.log(`Room with id ${id} has been removed.`);
+    } else {
+      console.log(`Room with id ${id} not found.`);
+    }
   }
 
   addUserToRoom(index: number, roomId: number): void {

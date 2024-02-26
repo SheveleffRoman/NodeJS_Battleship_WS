@@ -158,6 +158,7 @@ export const addUserToRoom = (
     }
 
     if (room.roomUsers.length > 1) {
+      DB.removeRoomById(index)
       room.roomUsers.forEach((user) => {
         const userIndex = user.index;
         const socket = DB.getPlayerSocket(userIndex!);
