@@ -53,15 +53,15 @@ const handleRequest = (message: ClientRequest, ws: ExtendedWebSocket): void => {
       break;
 
     case "add_ships":
-      addShips(message, ws);
+      addShips(message);
       break;
 
     case "attack":
-      handleAttackRequest(message, ws);
+      handleAttackRequest(message);
       break;
 
     case "randomAttack":
-      handleAttackRequest(message, ws);
+      handleAttackRequest(message);
 
     default:
       break;

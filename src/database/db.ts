@@ -65,10 +65,6 @@ class DataBase {
     return this.rooms;
   }
 
-  clearRooms(id: number): Room[] {
-    return (this.rooms = []);
-  }
-
   removeRoomById(id: number): void {
     const indexToRemove = this.rooms.findIndex((room) => room.roomId === id);
 

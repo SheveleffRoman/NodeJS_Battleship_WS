@@ -174,7 +174,7 @@ export const addUserToRoom = (
   }
 };
 
-export const addShips = (message: ClientRequest, _ws: ExtendedWebSocket) => {
+export const addShips = (message: ClientRequest) => {
   try {
     const data = message.data.toString();
     const parsedData = JSON.parse(data);
@@ -226,13 +226,11 @@ export const addShips = (message: ClientRequest, _ws: ExtendedWebSocket) => {
 };
 
 // Оработка запроса атаки
-export function handleAttackRequest(
-  message: ClientRequest,
-  _ws: ExtendedWebSocket
-) {
+export function handleAttackRequest(message: ClientRequest) {
   let attackData: Attack;
-  let usedCoordinates: { [key: string]: boolean } = {};
+  const usedCoordinates: { [key: string]: boolean } = {};
   const data = message.data.toString();
+  let key: string;
 
   const checkRandomAttack = message.type.toString();
   if (checkRandomAttack === "randomAttack") {
@@ -240,11 +238,10 @@ export function handleAttackRequest(
     do {
       attackData.x = Math.floor(Math.random() * 10);
       attackData.y = Math.floor(Math.random() * 10);
-      var key = `${attackData.x},${attackData.y}`;
+      key = `${attackData.x},${attackData.y}`;
     } while (usedCoordinates[key]);
 
     usedCoordinates[key] = true;
-
   } else {
     attackData = JSON.parse(data) as Attack;
   }
@@ -263,7 +260,7 @@ export function handleAttackRequest(
   // console.log(enemyPositions);
 
   if (enemyPositions) {
-    const attackStatus = attack(attackData, enemyPositions);
+    attack(attackData, enemyPositions);
   }
 }
 
