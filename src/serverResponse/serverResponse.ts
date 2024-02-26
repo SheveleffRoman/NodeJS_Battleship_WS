@@ -128,7 +128,6 @@ export const updateRoom = (ws: WebSocket) => {
       data: JSON.stringify(roomsList),
       id: 0,
     };
-    roomsList;
     ws.send(JSON.stringify(response));
   } catch (error) {
     console.log(error);
