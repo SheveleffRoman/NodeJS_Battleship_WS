@@ -18,10 +18,6 @@ export const handleClientRequest = (
   let clientMessageObj: unknown;
   const messageStr = message.toString();
 
-  console.log(
-    `Received message from client with ID ${ws.clientId}: ${message}`
-  );
-
   try {
     clientMessageObj = JSON.parse(messageStr);
   } catch {
