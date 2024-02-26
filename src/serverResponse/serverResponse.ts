@@ -41,7 +41,6 @@ export const serverRegUserResponse = (
         errorText: "",
       };
 
-      // Отправка ответа клиенту
       const response: ServerResponse = {
         type: "reg",
         data: JSON.stringify(responseData),
@@ -50,7 +49,6 @@ export const serverRegUserResponse = (
 
       ws.send(JSON.stringify(response));
     } else {
-      // Если имя игрока уже занято
 
       const responseData: RegResponseData = {
         name: parsedData.name,
@@ -144,7 +142,6 @@ export const addUserToRoom = (
 
     const room = DB.getRoomById(index) as Room;
 
-    // Check if the user is already in the room
     if (room.roomUsers.some((user) => user.index === clientId)) {
       console.log("User is already in the room");
       return;
@@ -225,7 +222,6 @@ export const addShips = (message: ClientRequest) => {
   }
 };
 
-// Оработка запроса атаки
 export function handleAttackRequest(message: ClientRequest) {
   let attackData: Attack;
   const usedCoordinates: { [key: string]: boolean } = {};
@@ -246,18 +242,12 @@ export function handleAttackRequest(message: ClientRequest) {
     attackData = JSON.parse(data) as Attack;
   }
 
-  // const attackData = JSON.parse(data) as Attack;
-  // console.log(attackData);
-
-  // // Найти корабли соперника по indexPlayer
 
   const shipPositions = DB.getShipsPosistions();
-  // console.log(shipPositions);
 
   const enemyPositions = shipPositions.find(
     (ships) => ships.indexPlayer != attackData.indexPlayer
   );
-  // console.log(enemyPositions);
 
   if (enemyPositions) {
     attack(attackData, enemyPositions);
@@ -282,7 +272,6 @@ function getShipCoordinates(ship: Ship) {
 
 let currentPlayerIndex = 0;
 
-// Функция для атаки по координатам
 function attack(attack: Partial<Attack>, positions: ShipPositions) {
   const hitCoordinate = positions.shipsCoordinates.find(
     (coord) => coord.x === attack.x && coord.y === attack.y
@@ -295,18 +284,16 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
     return;
   }
 
-  // console.log(hitCoordinate);
 
   if (hitCoordinate) {
     DB.removeCoordinateFromArray(attack);
-    // console.log(DB.getShipsPosistions())
   } else {
     switchTurn();
   }
 
   if (positions.shipsCoordinates.length == 0) {
     gameRoom.forEach((game: GameRoom) => {
-      const playerIndex = game.indexPlayer; // порядковый номер в группе
+      const playerIndex = game.indexPlayer;
       const socket = DB.getPlayerSocket(playerIndex);
       const finishResponse = {
         type: "finish",
@@ -322,7 +309,7 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
   }
 
   gameRoom.forEach((game: GameRoom) => {
-    const playerIndex = game.indexPlayer; // порядковый номер в группе
+    const playerIndex = game.indexPlayer;
     if (hitCoordinate) {
       const response = {
         type: "attack",
@@ -371,6 +358,6 @@ function attack(attack: Partial<Attack>, positions: ShipPositions) {
   });
 
   function switchTurn() {
-    currentPlayerIndex = 1 - currentPlayerIndex; // Переключение между 0 и 1
+    currentPlayerIndex = 1 - currentPlayerIndex;
   }
 }

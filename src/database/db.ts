@@ -17,12 +17,10 @@ class DataBase {
   private gameRoom: GameRoom[] = [];
   private shipPositions: ShipPositions[] = [];
 
-  // Добавление сокета к игроку
   addSocketToPlayer(index: number, socket: WebSocket): void {
     this.playerSockets.set(index, socket);
   }
 
-  // Получение сокета игрока по индексу
   getPlayerSocket(index: number): WebSocket | undefined {
     return this.playerSockets.get(index);
   }
@@ -35,14 +33,12 @@ class DataBase {
     return this.playerSockets;
   }
 
-  // Регистрация нового пользователя
   registerUser(user: User, index: number): Player {
     const newUser = { name: user.name, password: user.password, index };
     this.playersList.push(newUser);
     return newUser;
   }
 
-  // Поиск пользователя по имени
   findUserByName(name: string): Player | undefined {
     return this.playersList.find((user) => user.name === name);
   }
@@ -128,7 +124,6 @@ class DataBase {
         (coord) => coord.x !== attack.x || coord.y !== attack.y
       );
 
-      // Обновляем shipPositions соперника
       this.shipPositions[enemyPositionsIndex].shipsCoordinates =
         updatedCoordinates;
 
@@ -140,10 +135,3 @@ class DataBase {
 }
 
 export const DB = new DataBase();
-
-//   addUserToRoom(user: Partial<Player>) {
-//     const roomId = this.rooms.length + 1;
-//     const newUser = { index: user.index, name: user.name };
-//     const newRoom = { roomId: roomId, roomPlayers: newUser };
-//     return this.rooms.push(newRoom);
-//   }
